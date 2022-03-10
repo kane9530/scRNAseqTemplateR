@@ -1,0 +1,37 @@
+Package: scRNAseqTemplateR
+Type: Package
+Title: scRNA-seq template 
+Version: 0.1.0
+Author: Kane Toh
+Maintainer: Kane Toh <kanetoh@nus.edu.sg>
+Description: Analysis was conducted on the PBMC_1K_V3 dataset from 10X Genomics. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+LazyDataCompression: xz
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+RoxygenNote: 7.1.2
+Imports: 
+    magrittr,
+    dplyr,
+    ggplot2,
+    DropletUtils,
+    Seurat,
+    Matrix,
+    scales,
+    rjson,
+    R2HTML,
+    DT,
+    gridExtra,
+    SingleCellExperiment,
+    SingleR,
+    celldex,
+    tidyr,
+    forcats,
+    patchwork,
+    methods

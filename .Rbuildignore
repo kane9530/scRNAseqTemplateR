@@ -1,0 +1,8 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^data-raw$
+^results$
+data/output$
+^LICENSE\.md$
+buildPkg.R
+^_summary.html$

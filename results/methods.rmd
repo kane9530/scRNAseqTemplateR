@@ -1,0 +1,42 @@
+---
+title: "Summary of computational methods"
+author:
+- Kane Toh^[Genomics and Data Analytics Core (GeDaC), Cancer Science Institute of Singapore, National University of Singapore; kanetoh@nus.edu.sg]
+date: "<center> _`r Sys.Date()`_ <center>"
+output: pdf_document
+urlcolor: blue
+---
+
+# 10X scRNA-seq data pre-processing and analysis
+
+## 10X data pre-processing 
+
+Raw Fastq files were downloaded from the [10X Genomics webpage](https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_v3/pbmc_1k_v3_fastqs.tar). Paired-end reads were pseudoaligned onto a pre-built index and then quantified via `kallisto(v0.48.0)-bustools(v0.41.0)`[Melsted et al.,2021](https://www.nature.com/articles/s41587-021-00870-2). 
+
+## Quality control
+
+Droplets containing real cell transcriptomes were distinguished from those containing only ambient RNA using the`DropletUtils` function `emptyDrops` (default parameters). Cells were then imported into a `Seurat(V.4.0.6)`[Hao et al., 2021](https://linkinghub.elsevier.com/retrieve/pii/S0092867421005833) object for downstream analyses. To retain only high-quality cells, cells were retained only if they jointly pass the following four quality thresholds: 1) RNA count (nCount_RNA) < 20000; 2) RNA count (nCount_RNA) > 1000; 3) Number of unique features (nFeature_RNA) > 1000; 4) Percentage of mitochondrial reads (percent.mt) < 20. 
+
+## Normalisation and dimensional reduction
+
+Counts were log-normalised with the default parameters (`NormalizeData`) and the top 2000 highly variable genes were retained for analysis (`FindVariableFeatures`). The normalised count matrix was then scaled and centered (`ScaleData`). The top 10 principal components (PCs) were retained for analysis after examination of the corresponding elbow plot. Next, cells were clustered using the Louvain algorithm by first conostructing a shared nearest neighbor (SNN) graph (`FindNeighbors`) and then determining the number of clusters (`FindClusters`) with a resolution parameter of 0.5. A total of 8 clusters were obtained and visualised with a Uniform Manifold Approximation and Projection (UMAP) embedding, alongside the expression of several features of interest. 
+
+## Identification of Differentially Expressed Genes
+
+Cluster-defining transcripts were identified for all 8 clusters via the default Wilcoxon Rank Sum test (`FindAllMarkers`). P-values were adjusted for multiple hypothesis in `Seurat` using a Bonferroni correction. 
+ 
+## Automated Annotation of Cell States 
+
+Automated, unbiased cell type recognition was carried out using the `SingleR` package, leveraging on the `MonacoImmuneData` reference index downloaded from the `celldex` R package. The reference dataset contains curated cell type labels from 114 bulk RNA-seq samples of sorted immune cell populations. 
+
+## References
+
+1. [kallisto\|bustools workflow: Melsted et al.,2021](https://www.nature.com/articles/s41587-021-00870-2): Pseudoalignment and transcript quantification 
+
+2. [kallisto: Bray et al., 2016](https://www.nature.com/articles/nbt.3519)
+
+3. [Seurat 4.0](https://linkinghub.elsevier.com/retrieve/pii/S0092867421005833): General single-cell RNA sequencing processing
+
+4. [singleR](https://www.nature.com/articles/s41590-018-0276-y): Automated annotation of cell clusters
+
+5. [CellDex](Aran D, Looney AP, Liu L, Wu E, Fong V, Hsu A, Chak S, Naikawadi RP, Wolters PJ, Abate AR, Butte AJ, Bhattacharya M (2019). “Reference-based analysis of lung single-cell sequencing reveals a transitional profibrotic macrophage.” Nat. Immunol., 20, 163-172. doi: 10.1038/s41590-018-0276-y.)
