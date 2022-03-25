@@ -1,81 +1,13 @@
----
-title: "scRNAseq template - 10x Chromium PBMC dataset"
-author:
-- Kane Toh^[Genomics and Data Analytics Core (GeDaC), Cancer Science Institute of Singapore, National University of Singapore; kanetoh@nus.edu.sg]
-date: "<center> _`r Sys.Date()`_ <center>"
-output:
-  rmarkdown::html_vignette:
-vignette: >
-  %\VignetteIndexEntry{scRNAseq template - 10x Chromium PBMC dataset}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r chunk_options, include = FALSE}
+## ----chunk_options, include = FALSE--------------------------------------------------------
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width = 7, fig.height = 5)
-```
 
-```{r, load_packages,  include=FALSE}
+## ---- load_packages,  include=FALSE--------------------------------------------------------
 library(scRNAseqTemplateR)
 library(ggplot2)
 library(Seurat)
 library(dplyr)
-```
 
-# Preliminaries
-
-## Description
-
-### Background
-
-Analysis of the Peripheral blood mononuclear cells (PBMC) dataset
-("PBMC_1k v3")
-
-PBMCs are primary cells with relatively small amounts of RNA (\~1pg
-RNA/cell).
-
-### Data generation workflow
-
--   Single-cell instrument:
-
--   Single-cell genomics library structure:
-
--   Sequencing machine: [Illumina
-    NovaSeq](https://sapac.illumina.com/systems/sequencing-platforms/novaseq.html)
-
-### Data
-
--   Access: [10x
-    genomics](https://www.10xgenomics.com/resources/datasets/1-k-pbm-cs-from-a-healthy-donor-v-3-chemistry-3-standard-3-0-0).
-    The 'toy' dataset can be downloaded directly from the 10x genomics
-    website. Data was downloaded on 23/02/2022.
-
--   File format: fastq
-
--   Reference:
-
-## Pipeline
-
-kallisto_bustools (pre-processing) -> Seurat (differential gene expression analysis) -> SingleR (Automated cluster annotation)
-
-### Why Kallisto for pre-processing?
-
-Shainer and Stemmer (2021)
-
-> "Another challenge in scRNA-seq preprocessing is the amount of data
-> that must be processed. A single-cell experiment can generate
-> 10^6-10^10 reads from 10^3-10^6 cells. This is leading to bottlenecks
-> in analysis: for example, the current standard program for
-> preprocessing 10x Genomics Chromium scRNA-seq, the Cell Ranger
-> software, requires approximately 22h to process 784 million reads
-> using 1.5Tb disk space." - Melsted et al., 2021
-
-We have downloaded 6 FASTQ files that are separated into two sequencing
-lanes *L001* and *L002*. There are 3 reads (*R1*: barcodes; *R2*: cDNA
-sequence; *I1*: Illumina lane info) in each lane. The scripts to generate the count matrices are in the `data-raw` directory.
-
-
-```{r loadData, include=FALSE}
+## ----loadData, include=FALSE---------------------------------------------------------------
 # Raw count_matrix - Output of Kallisto-bustools
 load(file = "../data/raw_matrix.rda")
 
@@ -94,42 +26,21 @@ results_path = '../results'
 ## Saving the filtered matrix in 10x format 
 out_path = '../inst/extdata/output_filt/counts_filtered'
 
-```
 
-# Quality Control 
-
-```{r UMIcounts_barcodes}
+## ----UMIcounts_barcodes--------------------------------------------------------------------
 # Dimensions of matrix
 dim(raw_matrix)
 
 # Examining distribution of UMI counts over barcodes
 tot_counts <- Matrix::colSums(raw_matrix)
 summary(tot_counts)
-```
 
-### Analysis and removal of empty droplets to generate `filt_matrix.rda`. 
-
-1.  Prior to filtering out the empty droplets, we can check which genes
-    have the highest proportions in all droplets? [Code adapted from
-    Kallisto\|bustools](##%20Adapted%20from%20https://www.kallistobus.tools/tutorials/kb_building_atlas/r/kb_analysis_0_r/)
-
-```{r Plot_genes_proportion}
+## ----Plot_genes_proportion-----------------------------------------------------------------
 plot_pct_genes(raw_matrix, tr2g)
 class(raw_matrix)
 class(tr2g)
-```
 
-As expected, the top genes by proportion of all counts are ribosomal or
-mitochondrial genes.
-
-2.  Next, we use the `DropletUtils` package to filter away the empty
-    droplets [Code adapted from
-    DIYtranscriptomics](https://journals.asm.org/doi/10.1128/mBio.01214-21)
-    [Vignette on
-    DropletUtils](https://bioconductor.org/packages/release/bioc/vignettes/DropletUtils/inst/doc/DropletUtils.html#detecting-empty-droplets)
-
-
-```{r removeEmpty, results=FALSE}
+## ----removeEmpty, results=FALSE------------------------------------------------------------
 # Use DropletUtils package to get probability that each barcode is a cell
 out <- DropletUtils::emptyDrops(raw_matrix)
 
@@ -150,27 +61,16 @@ dim(filt_matrix)[2]/dim(raw_matrix)[1]*100
 
 tr2g <- dplyr::distinct(tr2g[, c("gene", "gene_name")])
 
-```
 
-We can then write out the filtered matrix in a 10X format as follows:
-
-```{r write10xcounts_filteredMat }
+## ----write10xcounts_filteredMat------------------------------------------------------------
 
 DropletUtils::write10xCounts(out_path, 
                x = filt_matrix, 
                gene.id = unlist(tr2g[,1]),
                gene.symbol = unlist(tr2g[,2]),
                overwrite=T) 
-```
 
-3.  Produce the classic 'knee plot' from [Macosko et al.,
-    2015](https://www.cell.com/fulltext/S0092-8674(15)00549-8)
-    [functions.R modified from Sarah Ennis
-    repo](https://github.com/Sarah145/scRNA_pre_process)
-    
-First, we load the processed, filtered matrix after removing empty droplets via the `DropletUtils` package.
-
-```{r calculate-stats, results=FALSE}
+## ----calculate-stats, results=FALSE--------------------------------------------------------
 
 # Load filtered mtx
 #filt_mtx <- Matrix::readMM(paste0(out_path,'/matrix.mtx')) 
@@ -219,10 +119,8 @@ stats <- DropletUtils::barcodeRanks(raw_matrix)
 
 #write.table(stats, file=paste0(out_path, "/barcode_rank.txt"))
 
-```
 
-
-```{r knee-plot}
+## ----knee-plot-----------------------------------------------------------------------------
 # load raw cells
 #raw_cells <- read.table(paste0(kallisto_path,'/counts_unfiltered/cells_x_genes.barcodes.txt'),header=FALSE)[,1] 
 load(file="../data/raw_cells.rda")
@@ -235,47 +133,32 @@ load(file="../data/filt_cells.rda")
 bc_rank_plot(stats = stats, raw_cells = raw_cells, filt_cells = filt_cells, 
              save ="/plots/barcode_rank.png")
 
-```
 
+## ----createSeuratObject, eval = FALSE------------------------------------------------------
+#  # Create expression matrix with Read10X function from Seurat
+#  # out_path contains the genes.tsv, barcodes.tsv and matrix.mtx files
+#  # gene.column = 2 means we use the gene_symbols (not the ensembl IDs) for gene names
+#  
+#  expression_matrix <- Read10X(
+#    out_path,
+#    gene.column = 2,
+#    cell.column = 1,
+#    unique.features = TRUE
+#  )
+#  
+#  # Create Seurat object
+#  pbmc.1k.seurat <- CreateSeuratObject(counts = expression_matrix,
+#                                       project = "pbmc1k",
+#                                       min.cells = 3,
+#                                       min.features = 200)
+#  
 
-After this point, the data is analysed within Seurat with the standard
-workflow.
-
-### Extra QC plots
-
-Create a Seurat object and use it to plot several other QC diagnostics.
-
-```{r createSeuratObject, eval = FALSE}
-# Create expression matrix with Read10X function from Seurat
-# out_path contains the genes.tsv, barcodes.tsv and matrix.mtx files
-# gene.column = 2 means we use the gene_symbols (not the ensembl IDs) for gene names
-
-expression_matrix <- Read10X(
-  out_path,
-  gene.column = 2,
-  cell.column = 1,
-  unique.features = TRUE
-)
-
-# Create Seurat object
-pbmc.1k.seurat <- CreateSeuratObject(counts = expression_matrix, 
-                                     project = "pbmc1k",
-                                     min.cells = 3,
-                                     min.features = 200)
-
-```
-
-```{r load_from_data, include=FALSE}
+## ----load_from_data, include=FALSE---------------------------------------------------------
 
 load(file = "../data/pbmc.1k.seurat.rda")
 
-```
 
-
-1.  Calculate percent of mitochondrial reads, RNA counts and feature
-    counts
-
-```{r, QC_pert_Mito}
+## ---- QC_pert_Mito-------------------------------------------------------------------------
 # Stash the percent.mt stats in seurat object metadata
 # NOTE: Change 'MT' to 'mt' for mouse
 pbmc.1k.seurat[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = pbmc.1k.seurat, pattern = "^MT") 
@@ -283,27 +166,8 @@ pbmc.1k.seurat[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = pbmc.1k.
 # Violin plots of the 3 QC metrics
 Seurat::VlnPlot(pbmc.1k.seurat, c("nCount_RNA", "nFeature_RNA", "percent.mt"), 
         pt.size = 0.1, ncol=3)
-```
 
-
-2.  Relationship between percentage of mitochondrial reads / number of
-    detected genes and the total UMI counts per cell
-
-**Analysis of #Detected genes vs total UMI counts**:
-
-1.  Data points in the bottom left hand quadrant = low genes and UMIs
-    per cell. May represent poor quality cells.
-
-2.  Data points in the bottom RIGHT hand quadrant = low genes but high
-    UMIs per cell. These could be dying cells, but also could represent
-    a population of a low complexity cell type (i.e red blood cells).
-
-**Analysis of %mito vs total UMI counts**:
-
-For high quality cells, we expect there to be low % mitochondrial reads
-for cells with higher UMI counts.
-
-```{r, QC_scatter_genes_mito}
+## ---- QC_scatter_genes_mito----------------------------------------------------------------
 
 p1 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, nFeature_RNA)) +
   geom_point(alpha = 0.7, size = 0.5) +
@@ -318,12 +182,8 @@ p2 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, percent.mt)) +
 # 1x2 layout
 gridExtra::grid.arrange(p1, p2, ncol=2)
 
-```
 
-Following examination of the QC metrics, we further subset the
-SeuratObject to retain only the high-quality cells.
-
-```{r subset_seurat}
+## ----subset_seurat-------------------------------------------------------------------------
 pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset = 
                            nCount_RNA < 20000 & 
                            nCount_RNA > 1000 & 
@@ -331,48 +191,16 @@ pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset =
                            percent.mt < 20)
 
 pbmc.1k.seurat
-```
 
-From the initial Seurat Object of 1206 cells (after removal of empty
-droplets), we are now left with 1064 cells for downstream analysis.
-
-## Normalisation and dimensional reduction
-
-We apply the following list of functions in sequence:
-
-`pbmc.1k.seurat.2`
-- `NormalizeData`:
-
-`pbmc.1k.seurat.3`
-- `FindVariableFeatures`: 
-
-`pbmc.1k.seurat.4`
-- `ScaleData`: standardise gene expression to have mean =0; variance = 1. This 
-givers equal weight to all genes in downstream analysis, preventing 
-highly-expressed genes from dominating the analysis.
-- `RunPCA`:
-
-`pbmc.1k.seurat.5`
-- `FindNeighbors`:
-- `FindClusters`: 
-
-`pbmc.1k.seurat.6`
-- `RunUMAP`:
-
-First, we observe how our QC and normalisation procedure affects the most highly-expressed genes.
-
-```{r QC_top_n_counts}
+## ----QC_top_n_counts-----------------------------------------------------------------------
 verbose = TRUE
 pbmc.1k.seurat.2 <- pbmc.1k.seurat %>%
   NormalizeData(verbose = verbose) 
 
 plot_pct_genes(GetAssayData(pbmc.1k.seurat.2, slot = "counts"), 
                tr2g, symbol = "symbol")
-```
 
-Next, we identify the top 2000 most highly variable genes
-
-```{r top2k_var_genes}
+## ----top2k_var_genes-----------------------------------------------------------------------
 pbmc.1k.seurat.3 <- pbmc.1k.seurat.2 %>%
   FindVariableFeatures(verbose = verbose) 
 
@@ -383,69 +211,37 @@ top10 <- head(VariableFeatures(pbmc.1k.seurat.3), 10)
 plot1 <- VariableFeaturePlot(pbmc.1k.seurat.3, log = FALSE)
 LabelPoints(plot = plot1, points = top10, repel = FALSE)
 
-```
 
-Next, we scale and perform PCA analysis.
-
-Here, we first visualise the PCA loadings for the genes in the first 2 PCs.
-
-```{r scale_pca, fig.width = 7, fig.height = 5}
+## ----scale_pca, fig.width = 7, fig.height = 5----------------------------------------------
 pbmc.1k.seurat.4 <- pbmc.1k.seurat.3 %>%
   ScaleData(verbose = verbose) %>%
   RunPCA(npcs = 40, verbose = verbose) 
 
 VizDimLoadings(pbmc.1k.seurat.4, dims= 1:2, reduction = "pca")
-```
-We obtain a set of genes that influences the top 2 PCs, which should be relevant
-to the biological process at hand.
 
-Next, we can also visualise the expression of a gene using FeaturePlots
-
-```{r visualise_gene}
+## ----visualise_gene------------------------------------------------------------------------
 FeaturePlot(pbmc.1k.seurat.4, reduction = "pca", feature = "CST3")
-```
 
-We observe that CST3 is highly expressed within a tight cluster of the PCA plot.
-
-Finally, we can assess the dimensionality of the dataset in an `ElbowPlot`.
-
-```{r elbowplot}
+## ----elbowplot-----------------------------------------------------------------------------
 ElbowPlot(pbmc.1k.seurat.4)
-```
-For this dataset, we observe that most of the true signal is captured in the
-first 10 PCs. Therefore, for downstream analysis, we only keep the first
-10 dimensions.
 
-Next, we find clusters using the louvain algorithm on the PCA embedding
-
-```{r louvain_clustering}
+## ----louvain_clustering--------------------------------------------------------------------
 pbmc.1k.seurat.5<- pbmc.1k.seurat.4 %>%
     FindNeighbors(reduction = "pca", dims = 1:10, verbose = verbose) %>% 
     FindClusters(resolution = 0.5, verbose = verbose)
-```
 
-Finally, we visualise the clusters in our data with the UMAP embedding.
-
-```{r umap_embedding}
+## ----umap_embedding------------------------------------------------------------------------
 pbmc.1k.seurat.6<- pbmc.1k.seurat.5 %>%
   RunUMAP(reduction = "pca", dims = 1:10, verbose = verbose)
 
 DimPlot(pbmc.1k.seurat.6, reduction = "umap", split.by = "orig.ident", label = TRUE)
 
-```
 
-We visualise the expression of genes of interest in the UMAP
-
-```{r umap_gene_expression}
+## ----umap_gene_expression------------------------------------------------------------------
 FeaturePlot(pbmc.1k.seurat.6, reduction = "umap", features = c("CST3", "NKG7", "PPBP"),
 ncol = 3)
-```
 
-# Finding cluster-specific marker genes
-
-## Top_n Marker genes for 1 specific cluster
-
-```{r findmarkers}
+## ----findmarkers---------------------------------------------------------------------------
 top_n = 20
 cluster1.markers <- FindMarkers(pbmc.1k.seurat.6, ident.1 = 1, min.pct = 0.25)
 cluster1.markers$pct.diff <- cluster1.markers$pct.1 - cluster1.markers$pct.2
@@ -463,11 +259,8 @@ DT::datatable(myTopHits_cluster1,
                          pageLength = 10, 
                          lengthMenu = c("10", "25", "50", "100"))) %>%
   DT::formatRound(columns=c(2:11), digits=2)
-```
 
-## Top 3 Marker genes for all clusters
-
-```{r findallmarkers, fig.width = 9, fig.height = 10}
+## ----findallmarkers, fig.width = 9, fig.height = 10----------------------------------------
 pbmc.1k.markers <- FindAllMarkers(pbmc.1k.seurat.6, 
                                   only.pos = TRUE, 
                                   min.pct = 0.25, 
@@ -479,47 +272,29 @@ top3 <- pbmc.1k.markers %>%
   top_n(n = 3, wt = avg_log2FC)
 
 DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
-```
 
-## Export marker genes as .csv
+## ----export_markers, eval=FALSE------------------------------------------------------------
+#  filename = paste0(results_path,"/markers_all.csv")
+#  write.csv(pbmc.1k.markers %>% group_by(cluster), file=filename)
+#  
 
-```{r export_markers, eval=FALSE}
-filename = paste0(results_path,"/markers_all.csv")
-write.csv(pbmc.1k.markers %>% group_by(cluster), file=filename)
-
-```
-
-## Visualise marker gene expression
-
-### UMAP
-```{r featuremap_allmarkers, fig.width = 9, fig.height = 10}
+## ----featuremap_allmarkers, fig.width = 9, fig.height = 10---------------------------------
 
 FeaturePlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
-```
 
-### Violin plots
-```{r violinplots_allmarkers, fig.width = 7, fig.height = 10}
+## ----violinplots_allmarkers, fig.width = 7, fig.height = 10--------------------------------
 
 VlnPlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
-```
 
-# Assigning identities to clusters
-
-## Manual/de novo annotation approach
-
-First, we visualise a dotplot to facilitate the mapping of cluster identities
-using the markers.
-
-```{r dotplot_manualAnnotate}
+## ----dotplot_manualAnnotate----------------------------------------------------------------
 
 DotPlot(pbmc.1k.seurat.6, assay = "RNA", features = top3$gene, scale.by = "size") +
   coord_flip()
 
-```
 
-```{r umap_with_ident}
+## ----umap_with_ident-----------------------------------------------------------------------
 
 new.cluster.ids <- c("CD14+ Mono", "Memory CD4 T", "Naive CD4 T", "B1", "FCGR3A+ Mono", 
     "NK", "CD8+ T", "B2", "Platelet")
@@ -527,17 +302,8 @@ names(new.cluster.ids) <- levels(pbmc.1k.seurat.6)
 pbmc.1k.seurat.6 <- RenameIdents(pbmc.1k.seurat.6, new.cluster.ids)
 DimPlot(pbmc.1k.seurat.6, reduction = "umap", label = TRUE, pt.size = 0.5, label.size = 4)
 
-```
 
-## Automated annotation approach
-
-*Using the singleR package*
-
-The singleR package labels clusters using public datasets, and is used 
-in conjunction with the celldex package. Here, we import only the MonacoImmuneData public dataset which contains curated cell type labels from 114 bulk RNA-seq samples of sorted immune cell populations. 
-
-Generating predictions with singleR
-```{r singleR_heatmap}
+## ----singleR_heatmap-----------------------------------------------------------------------
 
 Monaco.data <- celldex::MonacoImmuneData(ensembl = FALSE) 
 
@@ -551,9 +317,8 @@ predictions <- SingleR::SingleR(test=pbmc.1k.sce, assay.type.test=1,
                        ref=Monaco.data, labels=Monaco.data$label.main)
 
 SingleR::plotScoreHeatmap(predictions)
-```
 
-```{r singleR_predictions, fig.width = 7, fig.height = 10}
+## ----singleR_predictions, fig.width = 7, fig.height = 10-----------------------------------
 
 #Add prediction labels back to singleCellExperiment object
 pbmc.1k.sce[["SingleR.labels"]] <- predictions$labels
@@ -573,31 +338,7 @@ DimPlot(pbmc.1k.seurat.7, reduction = "UMAP",
   patchwork::plot_annotation(title = 'Labelling clusters with singleR labels')+
   theme(plot.title = element_blank())
 
-```
 
-# Conclusions
-
-* Data quality:
-- QC analysis shows that cells are of high-quality.
-- No other concern.
-
-* Analysis results:
-- Identified marker genes for clusters- can be found in results folder.
-- Automated identification of clusters in dataset.
-
-# Main packages used:
-
-* Pseudoalignment and transcript quantification: [kallisto\|bustools workflow: Melsted et al.,2021](https://www.nature.com/articles/s41587-021-00870-2) 
-
-* [kallisto: Bray et al., 2016](https://www.nature.com/articles/nbt.3519)
-
-* General single-cell RNA sequencing processing [Seurat 4.0](https://linkinghub.elsevier.com/retrieve/pii/S0092867421005833)
-
-* Automated annotation of cell clusters [singleR](https://www.nature.com/articles/s41590-018-0276-y)
-
-
-# Session info
-
-```{r session info, include=TRUE}
+## ----session info, include=TRUE------------------------------------------------------------
 sessionInfo()
-```
+
