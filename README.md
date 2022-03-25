@@ -34,22 +34,27 @@ devtools::install_github("kane9530/scRNAseqTemplateR")
 
 - vignettes/ contains the analysis report  as a package vignette
 
+- inst/doc contains vignette files copied to the top-level directory
+
 - R/: contains R scripts with functions used throughout the package
 
 - tests/: contains development-time tests for our functions
 
 - results/ contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
 
-## Examples
+## Usage
 
 ``` r
+library(scRNAseqTemplateR)
+
 # Browse the vignette here:
+browseVignettes("scRNAseqTemplateR")
 
-# Load the data
+# Load the PBMC data - Loadable data can be found in /data
+data(raw_matrix)
 
-# Visualising plot from seurat object
-
-
+# Checking for function documentation 
+?plot_pct_genes
 
 ```
 
