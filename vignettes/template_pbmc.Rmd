@@ -1,27 +1,12 @@
 ---
-title: "<center> Example template - Reanalysis of 10x Chromium PBMC dataset <center>"
+title: "<center> Example template - 10x Chromium PBMC dataset <center>"
 author:
 - Kane Toh^[Genomics and Data Analytics Core (GeDaC), Cancer Science Institute of Singapore, National University of Singapore; kanetoh@nus.edu.sg]
 date: "<center> _`r Sys.Date()`_ <center>"
 output:
-  html_document:
-    code_folding: show
-    df_print: paged
-    theme: cerulean
-    highlight: tango
-    toc: yes
-    toc_float:
-      collapsed: true
-      smooth_scroll: true
-    number_sections: true
-  pdf_document:
-    fig_caption: yes
-    toc: yes
-editor_options: 
-  markdown: 
-    wrap: 72
+  rmarkdown::html_vignette:
 vignette: >
-  %\VignetteIndexEntry{BurkittLymphomaR}
+  %\VignetteIndexEntry{Example template - 10x Chromium PBMC dataset}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -255,15 +240,10 @@ load(file="../data/filt_cells.rda")
 
 # create barcode rank plot and save as .png
 bc_rank_plot(stats = stats, raw_cells = raw_cells, filt_cells = filt_cells, 
-             save = paste0(results_path,"/plots/barcode_rank.png"))
-
-# output a HTML summary of the run for presentation. 
-print_HTML(seq_stats = seq_stats, cell_stats = cell_stats, 
-          dir = "./", img_dir = paste0(results_path,"/plots/"), sample_id = NULL)
+             save ="/plots/barcode_rank.png")
 
 ```
 
-![Knee](../results/plots/barcode_rank.png){width = 50%}
 
 After this point, the data is analysed within Seurat with the standard
 workflow.
@@ -408,7 +388,7 @@ top10 <- head(VariableFeatures(pbmc.1k.seurat.3), 10)
 
 # plot variable features with and without labels
 plot1 <- VariableFeaturePlot(pbmc.1k.seurat.3, log = FALSE)
-LabelPoints(plot = plot1, points = top10, repel = TRUE)
+LabelPoints(plot = plot1, points = top10, repel = FALSE)
 
 ```
 
@@ -510,7 +490,7 @@ DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
 
 ## Export marker genes as .csv
 
-```{r export_markers}
+```{r export_markers, eval=FALSE}
 filename = paste0(results_path,"/markers_all.csv")
 write.csv(pbmc.1k.markers %>% group_by(cluster), file=filename)
 
@@ -596,7 +576,7 @@ pbmc.1k.seurat.7[["UMAP"]] <- CreateDimReducObject(embeddings = pbmc.1k.sce@int_
 DimPlot(pbmc.1k.seurat.7, reduction = "UMAP", 
         group.by = "SingleR.labels", 
         label = TRUE,
-        repel = TRUE)+ 
+        repel = FALSE)+ 
   patchwork::plot_annotation(title = 'Labelling clusters with singleR labels')+
   theme(plot.title = element_blank())
 
@@ -609,8 +589,8 @@ DimPlot(pbmc.1k.seurat.7, reduction = "UMAP",
 - No other concern.
 
 * Analysis results:
-- Identified marker genes for clusters and exported as `r filename`.
-- Automated identification of clusters in dataset
+- Identified marker genes for clusters- can be found in results folder.
+- Automated identification of clusters in dataset.
 
 # Main packages used:
 
