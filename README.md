@@ -24,23 +24,23 @@ devtools::install_github("kane9530/scRNAseqTemplateR")
 
 ## Directories
 
-- DESCRIPTION: gives an overview of the project and its dependencies.
+- `DESCRIPTION`: gives an overview of the project and its dependencies.
 
-- data/ contains the .rda tidy data files
+- `data/` contains the .rda tidy data files
 
-- data-raw/ contains the `. sh` and `.R` scripts to download the fastq files, pseudoalign reads with kallisto-bustools and generate the `raw_matrix.rda` and `t2g.rda` files in /data
+- `data-raw/` contains the `. sh` and `.R` scripts to download the fastq files, pseudoalign reads with kallisto-bustools and generate the `raw_matrix.rda` and `t2g.rda` files in /data
 
-- man/ contains the documentation for the data and functions
+- `man/` contains the documentation for the data and functions
 
-- vignettes/ contains the analysis report  as a package vignette
+- `vignettes/` contains the analysis report  as a package vignette
 
-- inst/doc contains vignette files copied to the top-level directory
+- `inst/doc` contains vignette files copied to the top-level directory
 
-- R/: contains R scripts with functions used throughout the package
+- `R/`: contains R scripts with functions used throughout the package
 
-- tests/: contains development-time tests for our functions
+- `tests/`: contains development-time tests for our functions
 
-- results/ contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
+- `results/` contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
 
 ## Usage
 
