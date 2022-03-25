@@ -1,4 +1,4 @@
-
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kane9530/scRNAseqTemplateR?style=flat-square)
 # scRNAseqTemplateR
 
 scRNAseqTemplateR was created as a template for the analysis of single-cell RNA sequencing (scRNA-seq) data in the `Genomics and Data Analytics Core (GeDaC)`, Cancer Science Institute of Singapore. 
