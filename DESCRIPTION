@@ -34,4 +34,6 @@ Imports:
     tidyr,
     forcats,
     patchwork,
-    methods
+    methods,
+    viridis,
+    pheatmap
