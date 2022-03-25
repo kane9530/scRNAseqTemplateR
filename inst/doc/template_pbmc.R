@@ -1,13 +1,13 @@
-## ----chunk_options, include = FALSE------
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+## ----chunk_options, include = FALSE--------------------------------------------------------
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width = 7, fig.height = 5)
 
-## ----------------------------------------
+## ---- load_packages,  include=FALSE--------------------------------------------------------
 library(scRNAseqTemplateR)
 library(ggplot2)
 library(Seurat)
 library(dplyr)
 
-## ----loadData, include=FALSE-------------
+## ----loadData, include=FALSE---------------------------------------------------------------
 # Raw count_matrix - Output of Kallisto-bustools
 load(file = "../data/raw_matrix.rda")
 
@@ -27,7 +27,7 @@ results_path = '../results'
 out_path = '../inst/extdata/output_filt/counts_filtered'
 
 
-## ----UMIcounts_barcodes------------------
+## ----UMIcounts_barcodes--------------------------------------------------------------------
 # Dimensions of matrix
 dim(raw_matrix)
 
@@ -35,12 +35,12 @@ dim(raw_matrix)
 tot_counts <- Matrix::colSums(raw_matrix)
 summary(tot_counts)
 
-## ----Plot_genes_proportion---------------
+## ----Plot_genes_proportion-----------------------------------------------------------------
 plot_pct_genes(raw_matrix, tr2g)
 class(raw_matrix)
 class(tr2g)
 
-## ----removeEmpty, results=FALSE-----------------------------------------------------------
+## ----removeEmpty, results=FALSE------------------------------------------------------------
 # Use DropletUtils package to get probability that each barcode is a cell
 out <- DropletUtils::emptyDrops(raw_matrix)
 
@@ -62,7 +62,7 @@ dim(filt_matrix)[2]/dim(raw_matrix)[1]*100
 tr2g <- dplyr::distinct(tr2g[, c("gene", "gene_name")])
 
 
-## ----write10xcounts_filteredMat-----------------------------------------------------------
+## ----write10xcounts_filteredMat------------------------------------------------------------
 
 DropletUtils::write10xCounts(out_path, 
                x = filt_matrix, 
@@ -70,7 +70,7 @@ DropletUtils::write10xCounts(out_path,
                gene.symbol = unlist(tr2g[,2]),
                overwrite=T) 
 
-## ----calculate-stats, results=FALSE-------------------------------------------------------
+## ----calculate-stats, results=FALSE--------------------------------------------------------
 
 # Load filtered mtx
 #filt_mtx <- Matrix::readMM(paste0(out_path,'/matrix.mtx')) 
@@ -120,7 +120,7 @@ stats <- DropletUtils::barcodeRanks(raw_matrix)
 #write.table(stats, file=paste0(out_path, "/barcode_rank.txt"))
 
 
-## ----knee-plot----------------------------------------------------------------------------
+## ----knee-plot-----------------------------------------------------------------------------
 # load raw cells
 #raw_cells <- read.table(paste0(kallisto_path,'/counts_unfiltered/cells_x_genes.barcodes.txt'),header=FALSE)[,1] 
 load(file="../data/raw_cells.rda")
@@ -134,7 +134,7 @@ bc_rank_plot(stats = stats, raw_cells = raw_cells, filt_cells = filt_cells,
              save ="/plots/barcode_rank.png")
 
 
-## ----createSeuratObject, eval = FALSE-----------------------------------------------------
+## ----createSeuratObject, eval = FALSE------------------------------------------------------
 #  # Create expression matrix with Read10X function from Seurat
 #  # out_path contains the genes.tsv, barcodes.tsv and matrix.mtx files
 #  # gene.column = 2 means we use the gene_symbols (not the ensembl IDs) for gene names
@@ -153,12 +153,12 @@ bc_rank_plot(stats = stats, raw_cells = raw_cells, filt_cells = filt_cells,
 #                                       min.features = 200)
 #  
 
-## ----load_from_data, include=FALSE--------------------------------------------------------
+## ----load_from_data, include=FALSE---------------------------------------------------------
 
 load(file = "../data/pbmc.1k.seurat.rda")
 
 
-## ---- QC_pert_Mito------------------------------------------------------------------------
+## ---- QC_pert_Mito-------------------------------------------------------------------------
 # Stash the percent.mt stats in seurat object metadata
 # NOTE: Change 'MT' to 'mt' for mouse
 pbmc.1k.seurat[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = pbmc.1k.seurat, pattern = "^MT") 
@@ -167,7 +167,7 @@ pbmc.1k.seurat[["percent.mt"]] <- Seurat::PercentageFeatureSet(object = pbmc.1k.
 Seurat::VlnPlot(pbmc.1k.seurat, c("nCount_RNA", "nFeature_RNA", "percent.mt"), 
         pt.size = 0.1, ncol=3)
 
-## ---- QC_scatter_genes_mito---------------------------------------------------------------
+## ---- QC_scatter_genes_mito----------------------------------------------------------------
 
 p1 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, nFeature_RNA)) +
   geom_point(alpha = 0.7, size = 0.5) +
@@ -183,7 +183,7 @@ p2 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, percent.mt)) +
 gridExtra::grid.arrange(p1, p2, ncol=2)
 
 
-## ----subset_seurat------------------------------------------------------------------------
+## ----subset_seurat-------------------------------------------------------------------------
 pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset = 
                            nCount_RNA < 20000 & 
                            nCount_RNA > 1000 & 
@@ -192,7 +192,7 @@ pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset =
 
 pbmc.1k.seurat
 
-## ----QC_top_n_counts----------------------------------------------------------------------
+## ----QC_top_n_counts-----------------------------------------------------------------------
 verbose = TRUE
 pbmc.1k.seurat.2 <- pbmc.1k.seurat %>%
   NormalizeData(verbose = verbose) 
@@ -200,7 +200,7 @@ pbmc.1k.seurat.2 <- pbmc.1k.seurat %>%
 plot_pct_genes(GetAssayData(pbmc.1k.seurat.2, slot = "counts"), 
                tr2g, symbol = "symbol")
 
-## ----top2k_var_genes----------------------------------------------------------------------
+## ----top2k_var_genes-----------------------------------------------------------------------
 pbmc.1k.seurat.3 <- pbmc.1k.seurat.2 %>%
   FindVariableFeatures(verbose = verbose) 
 
@@ -212,36 +212,36 @@ plot1 <- VariableFeaturePlot(pbmc.1k.seurat.3, log = FALSE)
 LabelPoints(plot = plot1, points = top10, repel = FALSE)
 
 
-## ----scale_pca, fig.width = 7, fig.height = 5---------------------------------------------
+## ----scale_pca, fig.width = 7, fig.height = 5----------------------------------------------
 pbmc.1k.seurat.4 <- pbmc.1k.seurat.3 %>%
   ScaleData(verbose = verbose) %>%
   RunPCA(npcs = 40, verbose = verbose) 
 
 VizDimLoadings(pbmc.1k.seurat.4, dims= 1:2, reduction = "pca")
 
-## ----visualise_gene-----------------------------------------------------------------------
+## ----visualise_gene------------------------------------------------------------------------
 FeaturePlot(pbmc.1k.seurat.4, reduction = "pca", feature = "CST3")
 
-## ----elbowplot----------------------------------------------------------------------------
+## ----elbowplot-----------------------------------------------------------------------------
 ElbowPlot(pbmc.1k.seurat.4)
 
-## ----louvain_clustering-------------------------------------------------------------------
+## ----louvain_clustering--------------------------------------------------------------------
 pbmc.1k.seurat.5<- pbmc.1k.seurat.4 %>%
     FindNeighbors(reduction = "pca", dims = 1:10, verbose = verbose) %>% 
     FindClusters(resolution = 0.5, verbose = verbose)
 
-## ----umap_embedding-----------------------------------------------------------------------
+## ----umap_embedding------------------------------------------------------------------------
 pbmc.1k.seurat.6<- pbmc.1k.seurat.5 %>%
   RunUMAP(reduction = "pca", dims = 1:10, verbose = verbose)
 
 DimPlot(pbmc.1k.seurat.6, reduction = "umap", split.by = "orig.ident", label = TRUE)
 
 
-## ----umap_gene_expression, fig.width = 10, fig.height = 5---------------------------------
+## ----umap_gene_expression------------------------------------------------------------------
 FeaturePlot(pbmc.1k.seurat.6, reduction = "umap", features = c("CST3", "NKG7", "PPBP"),
 ncol = 3)
 
-## ----findmarkers--------------------------------------------------------------------------
+## ----findmarkers---------------------------------------------------------------------------
 top_n = 20
 cluster1.markers <- FindMarkers(pbmc.1k.seurat.6, ident.1 = 1, min.pct = 0.25)
 cluster1.markers$pct.diff <- cluster1.markers$pct.1 - cluster1.markers$pct.2
@@ -260,7 +260,7 @@ DT::datatable(myTopHits_cluster1,
                          lengthMenu = c("10", "25", "50", "100"))) %>%
   DT::formatRound(columns=c(2:11), digits=2)
 
-## ----findallmarkers, fig.width = 8, fig.height = 10---------------------------------------
+## ----findallmarkers, fig.width = 9, fig.height = 10----------------------------------------
 pbmc.1k.markers <- FindAllMarkers(pbmc.1k.seurat.6, 
                                   only.pos = TRUE, 
                                   min.pct = 0.25, 
@@ -273,28 +273,28 @@ top3 <- pbmc.1k.markers %>%
 
 DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
 
-## ----export_markers, eval=FALSE-----------------------------------------------------------
+## ----export_markers, eval=FALSE------------------------------------------------------------
 #  filename = paste0(results_path,"/markers_all.csv")
 #  write.csv(pbmc.1k.markers %>% group_by(cluster), file=filename)
 #  
 
-## ----featuremap_allmarkers, fig.width = 15, fig.height = 10-------------------------------
+## ----featuremap_allmarkers, fig.width = 9, fig.height = 10---------------------------------
 
 FeaturePlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
 
-## ----violinplots_allmarkers, fig.width = 15, fig.height = 10------------------------------
+## ----violinplots_allmarkers, fig.width = 7, fig.height = 10--------------------------------
 
 VlnPlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
 
-## ----dotplot_manualAnnotate---------------------------------------------------------------
+## ----dotplot_manualAnnotate----------------------------------------------------------------
 
 DotPlot(pbmc.1k.seurat.6, assay = "RNA", features = top3$gene, scale.by = "size") +
   coord_flip()
 
 
-## ----umap_with_ident----------------------------------------------------------------------
+## ----umap_with_ident-----------------------------------------------------------------------
 
 new.cluster.ids <- c("CD14+ Mono", "Memory CD4 T", "Naive CD4 T", "B1", "FCGR3A+ Mono", 
     "NK", "CD8+ T", "B2", "Platelet")
@@ -303,7 +303,7 @@ pbmc.1k.seurat.6 <- RenameIdents(pbmc.1k.seurat.6, new.cluster.ids)
 DimPlot(pbmc.1k.seurat.6, reduction = "umap", label = TRUE, pt.size = 0.5, label.size = 4)
 
 
-## ----singleR_heatmap----------------------------------------------------------------------
+## ----singleR_heatmap-----------------------------------------------------------------------
 
 Monaco.data <- celldex::MonacoImmuneData(ensembl = FALSE) 
 
@@ -318,7 +318,7 @@ predictions <- SingleR::SingleR(test=pbmc.1k.sce, assay.type.test=1,
 
 SingleR::plotScoreHeatmap(predictions)
 
-## ----singleR_predictions, fig.width = 8, fig.height = 6-----------------------------------
+## ----singleR_predictions, fig.width = 7, fig.height = 10-----------------------------------
 
 #Add prediction labels back to singleCellExperiment object
 pbmc.1k.sce[["SingleR.labels"]] <- predictions$labels
@@ -339,6 +339,6 @@ DimPlot(pbmc.1k.seurat.7, reduction = "UMAP",
   theme(plot.title = element_blank())
 
 
-## ----session info, include=TRUE-----------------------------------------------------------
+## ----session info, include=TRUE------------------------------------------------------------
 sessionInfo()
 

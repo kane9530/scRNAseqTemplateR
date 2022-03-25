@@ -1,21 +1,21 @@
 ---
-title: "<center> Example template - 10x Chromium PBMC dataset <center>"
+title: "scRNAseq template - 10x Chromium PBMC dataset"
 author:
 - Kane Toh^[Genomics and Data Analytics Core (GeDaC), Cancer Science Institute of Singapore, National University of Singapore; kanetoh@nus.edu.sg]
 date: "<center> _`r Sys.Date()`_ <center>"
 output:
   rmarkdown::html_vignette:
 vignette: >
-  %\VignetteIndexEntry{Example template - 10x Chromium PBMC dataset}
+  %\VignetteIndexEntry{scRNAseq template - 10x Chromium PBMC dataset}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r chunk_options, include = FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width = 7, fig.height = 5)
 ```
 
-```{r}
+```{r, load_packages,  include=FALSE}
 library(scRNAseqTemplateR)
 library(ggplot2)
 library(Seurat)
@@ -54,18 +54,11 @@ RNA/cell).
 
 -   Reference:
 
-## Directories
-
--   /scripts contains:
--   /analysis contains: .rmd template files; .html knitr output files;
-    .png output plots; .csv results
--   /data contains the raw fastq files and
-
 ## Pipeline
 
-kallisto_bustools -> Seurat
+kallisto_bustools (pre-processing) -> Seurat (differential gene expression analysis) -> SingleR (Automated cluster annotation)
 
-### Why Kallisto?
+### Why Kallisto for pre-processing?
 
 Shainer and Stemmer (2021)
 
@@ -79,7 +72,8 @@ Shainer and Stemmer (2021)
 
 We have downloaded 6 FASTQ files that are separated into two sequencing
 lanes *L001* and *L002*. There are 3 reads (*R1*: barcodes; *R2*: cDNA
-sequence; *I1*: Illumina lane info) in each lane.
+sequence; *I1*: Illumina lane info) in each lane. The scripts to generate the count matrices are in the `data-raw` directory.
+
 
 ```{r loadData, include=FALSE}
 # Raw count_matrix - Output of Kallisto-bustools
@@ -112,7 +106,6 @@ dim(raw_matrix)
 tot_counts <- Matrix::colSums(raw_matrix)
 summary(tot_counts)
 ```
-## Quality-control
 
 ### Analysis and removal of empty droplets to generate `filt_matrix.rda`. 
 
@@ -443,7 +436,7 @@ DimPlot(pbmc.1k.seurat.6, reduction = "umap", split.by = "orig.ident", label = T
 
 We visualise the expression of genes of interest in the UMAP
 
-```{r umap_gene_expression, fig.width = 10, fig.height = 5}
+```{r umap_gene_expression}
 FeaturePlot(pbmc.1k.seurat.6, reduction = "umap", features = c("CST3", "NKG7", "PPBP"),
 ncol = 3)
 ```
@@ -474,7 +467,7 @@ DT::datatable(myTopHits_cluster1,
 
 ## Top 3 Marker genes for all clusters
 
-```{r findallmarkers, fig.width = 8, fig.height = 10}
+```{r findallmarkers, fig.width = 9, fig.height = 10}
 pbmc.1k.markers <- FindAllMarkers(pbmc.1k.seurat.6, 
                                   only.pos = TRUE, 
                                   min.pct = 0.25, 
@@ -499,14 +492,14 @@ write.csv(pbmc.1k.markers %>% group_by(cluster), file=filename)
 ## Visualise marker gene expression
 
 ### UMAP
-```{r featuremap_allmarkers, fig.width = 15, fig.height = 10}
+```{r featuremap_allmarkers, fig.width = 9, fig.height = 10}
 
 FeaturePlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
 ```
 
 ### Violin plots
-```{r violinplots_allmarkers, fig.width = 15, fig.height = 10}
+```{r violinplots_allmarkers, fig.width = 7, fig.height = 10}
 
 VlnPlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
@@ -560,7 +553,7 @@ predictions <- SingleR::SingleR(test=pbmc.1k.sce, assay.type.test=1,
 SingleR::plotScoreHeatmap(predictions)
 ```
 
-```{r singleR_predictions, fig.width = 8, fig.height = 6}
+```{r singleR_predictions, fig.width = 7, fig.height = 10}
 
 #Add prediction labels back to singleCellExperiment object
 pbmc.1k.sce[["SingleR.labels"]] <- predictions$labels
