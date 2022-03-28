@@ -9,6 +9,10 @@ To illustrate, we present the analysis of the 10x Chromium `PBMC_V3_1K` dataset.
 You can install the development version of scRNAseqTemplateR like so:
 
 ``` r
+# Install devtools from CRAN
+install.packages("devtools")
+
+# Install github repo
 devtools::install_github("kane9530/scRNAseqTemplateR")
 
 ```
