@@ -1,4 +1,3 @@
-
 # scRNAseqTemplateR
 
 The `scRNAseqTemplateR` R package was created to provide a portable and reproducible template for the analysis of single-cell RNA sequencing (scRNA-seq) data. The R package provides a starting template for bioinformaticians and biologists to share and reuse the code, and to adapt and extend the analysis as required.
@@ -32,30 +31,37 @@ Within the package, all output files are located in the`/results` and `/vignette
 
 ## Directories
 
-- DESCRIPTION: gives an overview of the project and its dependencies.
+- `DESCRIPTION`: gives an overview of the project and its dependencies.
 
-- data/ contains the .rda tidy data files
+- `data/` contains the .rda tidy data files
 
-- data-raw/ contains the `. sh` and `.R` scripts to download the fastq files, pseudoalign reads with kallisto-bustools and generate the `raw_matrix.rda` and `t2g.rda` files in /data
+- `data-raw/` contains the `. sh` and `.R` scripts to download the fastq files, pseudoalign reads with kallisto-bustools and generate the `raw_matrix.rda` and `t2g.rda` files in /data
 
-- man/ contains the documentation for the data and functions
+- `man/` contains the documentation for the data and functions
 
-- vignettes/ contains the analysis report  as a package vignette
+- `vignettes/` contains the analysis report  as a package vignette
 
-- R/: contains R scripts with functions used throughout the package
+- `inst/doc` contains vignette files copied to the top-level directory
 
-- tests/: contains development-time tests for our functions
+- `R/`: contains R scripts with functions used throughout the package
 
-- results/ contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
+- `tests/`: contains development-time tests for our functions
 
-## Examples
+- `results/` contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
+
+## Usage
 
 ``` r
+library(scRNAseqTemplateR)
+
 # Browse the vignette here:
+browseVignettes("scRNAseqTemplateR")
 
-# Load the data
+# Load the PBMC data - Loadable data can be found in /data
+data(raw_matrix)
 
-# Visualising plot from seurat object
+# Checking for function documentation 
+?plot_pct_genes
 
 ```
 
