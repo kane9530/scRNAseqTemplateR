@@ -32,13 +32,11 @@ Analysis of the Peripheral blood mononuclear cells (PBMC) dataset
 ("PBMC_1k v3")
 
 PBMCs are primary cells with relatively small amounts of RNA (\~1pg
-RNA/cell).
+RNA/cell), consisting of lymphocytes (T cells, B cells and NK cells) and monocytes.
 
 ### Data generation workflow
 
--   Single-cell instrument:
-
--   Single-cell genomics library structure:
+-   Single-cell genomics library structure: 10x Chromium Single Cell 3' solution (V3 chemistry)
 
 -   Sequencing machine: [Illumina
     NovaSeq](https://sapac.illumina.com/systems/sequencing-platforms/novaseq.html)
@@ -48,11 +46,10 @@ RNA/cell).
 -   Access: [10x
     genomics](https://www.10xgenomics.com/resources/datasets/1-k-pbm-cs-from-a-healthy-donor-v-3-chemistry-3-standard-3-0-0).
     The 'toy' dataset can be downloaded directly from the 10x genomics
-    website. Data was downloaded on 23/02/2022.
+    website. 
 
 -   File format: fastq
 
--   Reference:
 
 ## Pipeline
 
@@ -115,8 +112,6 @@ summary(tot_counts)
 
 ```{r Plot_genes_proportion}
 plot_pct_genes(raw_matrix, tr2g)
-class(raw_matrix)
-class(tr2g)
 ```
 
 As expected, the top genes by proportion of all counts are ribosomal or
@@ -154,7 +149,7 @@ tr2g <- dplyr::distinct(tr2g[, c("gene", "gene_name")])
 
 We can then write out the filtered matrix in a 10X format as follows:
 
-```{r write10xcounts_filteredMat }
+```{r write10xcounts_filteredMat, eval=FALSE }
 
 DropletUtils::write10xCounts(out_path, 
                x = filt_matrix, 
@@ -289,7 +284,7 @@ Seurat::VlnPlot(pbmc.1k.seurat, c("nCount_RNA", "nFeature_RNA", "percent.mt"),
 2.  Relationship between percentage of mitochondrial reads / number of
     detected genes and the total UMI counts per cell
 
-**Analysis of #Detected genes vs total UMI counts**:
+**Analysis of Number of detected genes vs total UMI counts**:
 
 1.  Data points in the bottom left hand quadrant = low genes and UMIs
     per cell. May represent poor quality cells.
@@ -298,7 +293,7 @@ Seurat::VlnPlot(pbmc.1k.seurat, c("nCount_RNA", "nFeature_RNA", "percent.mt"),
     UMIs per cell. These could be dying cells, but also could represent
     a population of a low complexity cell type (i.e red blood cells).
 
-**Analysis of %mito vs total UMI counts**:
+**Analysis of % Mito vs total UMI counts**:
 
 For high quality cells, we expect there to be low % mitochondrial reads
 for cells with higher UMI counts.
@@ -329,8 +324,6 @@ pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset =
                            nCount_RNA > 1000 & 
                            nFeature_RNA > 1000 & 
                            percent.mt < 20)
-
-pbmc.1k.seurat
 ```
 
 From the initial Seurat Object of 1206 cells (after removal of empty
@@ -454,7 +447,7 @@ cluster1.markers.df <- as_tibble(cluster1.markers, rownames = "geneID")
 # Export DEGs for each cluster (ranked by avg_logFC > 0.5)
 myTopHits_cluster1 <- cluster1.markers.df %>% arrange(desc(avg_log2FC))
 myTopHits_cluster1 <- dplyr::slice(myTopHits_cluster1, 1:top_n)
-
+myTopHits_cluster1
 # Interactive table 
 DT::datatable(myTopHits_cluster1, 
           extensions = c('KeyTable', "FixedHeader"), 
@@ -462,7 +455,7 @@ DT::datatable(myTopHits_cluster1,
           options = list(keys = TRUE, searchHighlight = TRUE, 
                          pageLength = 10, 
                          lengthMenu = c("10", "25", "50", "100"))) %>%
-  DT::formatRound(columns=c(2:11), digits=2)
+  DT::formatRound(columns=c(2:ncol(myTopHits_cluster1)), digits=2)
 ```
 
 ## Top 3 Marker genes for all clusters
@@ -578,12 +571,12 @@ DimPlot(pbmc.1k.seurat.7, reduction = "UMAP",
 # Conclusions
 
 * Data quality:
-- QC analysis shows that cells are of high-quality.
-- No other concern.
-
+  - QC analysis shows that cells are of high-quality.
+  - No other concern.
+  
 * Analysis results:
-- Identified marker genes for clusters- can be found in results folder.
-- Automated identification of clusters in dataset.
+  - Identified marker genes for clusters- can be found in results folder.
+  - Automated identification of clusters in dataset.
 
 # Main packages used:
 
