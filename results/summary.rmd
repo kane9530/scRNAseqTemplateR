@@ -1,0 +1,21 @@
+---
+title: "Summary of analyses for [Recipient]"
+author:
+- Kane Toh^[Genomics and Data Analytics Core (GeDaC), Cancer Science Institute of Singapore, National University of Singapore; kanetoh@nus.edu.sg]
+date: "<center> _`r Sys.Date()`_ <center>"
+output: pdf_document
+urlcolor: blue
+---
+
+# Preprocessing
+
+Analysis shows that cells are of high quality..
+
+# Downstream analysis
+
+- Identified x number of clusters
+- Automated cell type annotation shows that...
+
+# Conclusions
+
+In conclusion...
