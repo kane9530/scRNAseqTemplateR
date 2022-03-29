@@ -3,8 +3,6 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.width = 7, fig.height = 
 
 ## ---- load_packages,  include=FALSE-------------------------------------------
 library(scRNAseqTemplateR)
-library(ggplot2)
-library(Seurat)
 library(dplyr)
 
 ## ----loadData, include=FALSE--------------------------------------------------
@@ -167,15 +165,15 @@ Seurat::VlnPlot(pbmc.1k.seurat, c("nCount_RNA", "nFeature_RNA", "percent.mt"),
 
 ## ---- QC_scatter_genes_mito---------------------------------------------------
 
-p1 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, nFeature_RNA)) +
-  geom_point(alpha = 0.7, size = 0.5) +
-  labs(x = "Total UMI counts per cell", y = "Number of genes detected")+
-  theme_minimal()
+p1 <- ggplot2::ggplot(pbmc.1k.seurat@meta.data, ggplot2::aes(nCount_RNA, nFeature_RNA)) +
+  ggplot2::geom_point(alpha = 0.7, size = 0.5) +
+  ggplot2::labs(x = "Total UMI counts per cell", y = "Number of genes detected")+
+  ggplot2::theme_minimal()
 
-p2 <- ggplot(pbmc.1k.seurat@meta.data, aes(nCount_RNA, percent.mt)) +
-  geom_point(alpha = 0.7, size = 0.5) +
-  labs(x = "Total UMI counts per cell", y = "Percentage of mitochondrial genes")+
-  theme_minimal()
+p2 <- ggplot2::ggplot(pbmc.1k.seurat@meta.data, ggplot2::aes(nCount_RNA, percent.mt)) +
+  ggplot2::geom_point(alpha = 0.7, size = 0.5) +
+  ggplot2::labs(x = "Total UMI counts per cell", y = "Percentage of mitochondrial genes")+
+  ggplot2::theme_minimal()
 
 # 1x2 layout
 gridExtra::grid.arrange(p1, p2, ncol=2)
@@ -191,62 +189,63 @@ pbmc.1k.seurat <-subset(pbmc.1k.seurat, subset =
 ## ----QC_top_n_counts----------------------------------------------------------
 verbose = TRUE
 pbmc.1k.seurat.2 <- pbmc.1k.seurat %>%
-  NormalizeData(verbose = verbose) 
+  Seurat::NormalizeData(verbose = verbose) 
 
-plot_pct_genes(GetAssayData(pbmc.1k.seurat.2, slot = "counts"), 
+plot_pct_genes(Seurat::GetAssayData(pbmc.1k.seurat.2, slot = "counts"), 
                tr2g, symbol = "symbol")
 
 ## ----top2k_var_genes----------------------------------------------------------
 pbmc.1k.seurat.3 <- pbmc.1k.seurat.2 %>%
-  FindVariableFeatures(verbose = verbose) 
+  Seurat::FindVariableFeatures(verbose = verbose) 
 
 # Identify the 10 most highly variable genes
-top10 <- head(VariableFeatures(pbmc.1k.seurat.3), 10)
+top10 <- head(Seurat::VariableFeatures(pbmc.1k.seurat.3), 10)
 
 # plot variable features with and without labels
-plot1 <- VariableFeaturePlot(pbmc.1k.seurat.3, log = FALSE)
-LabelPoints(plot = plot1, points = top10, repel = FALSE)
+plot1 <- Seurat::VariableFeaturePlot(pbmc.1k.seurat.3, log = FALSE)
+Seurat::LabelPoints(plot = plot1, points = top10, repel = FALSE)
 
 
 ## ----scale_pca, fig.width = 7, fig.height = 5---------------------------------
 pbmc.1k.seurat.4 <- pbmc.1k.seurat.3 %>%
-  ScaleData(verbose = verbose) %>%
-  RunPCA(npcs = 40, verbose = verbose) 
+  Seurat::ScaleData(verbose = verbose) %>%
+  Seurat::RunPCA(npcs = 40, verbose = verbose) 
 
-VizDimLoadings(pbmc.1k.seurat.4, dims= 1:2, reduction = "pca")
+Seurat::VizDimLoadings(pbmc.1k.seurat.4, dims= 1:2, reduction = "pca")
 
 ## ----visualise_gene-----------------------------------------------------------
-FeaturePlot(pbmc.1k.seurat.4, reduction = "pca", feature = "CST3")
+Seurat::FeaturePlot(pbmc.1k.seurat.4, reduction = "pca", feature = "CST3")
 
 ## ----elbowplot----------------------------------------------------------------
-ElbowPlot(pbmc.1k.seurat.4)
+Seurat::ElbowPlot(pbmc.1k.seurat.4)
+
 
 ## ----louvain_clustering-------------------------------------------------------
 pbmc.1k.seurat.5<- pbmc.1k.seurat.4 %>%
-    FindNeighbors(reduction = "pca", dims = 1:10, verbose = verbose) %>% 
-    FindClusters(resolution = 0.5, verbose = verbose)
+    Seurat::FindNeighbors(reduction = "pca", dims = 1:10, verbose = verbose) %>% 
+    Seurat::FindClusters(resolution = 0.5, verbose = verbose)
 
 ## ----umap_embedding-----------------------------------------------------------
 pbmc.1k.seurat.6<- pbmc.1k.seurat.5 %>%
-  RunUMAP(reduction = "pca", dims = 1:10, verbose = verbose)
+  Seurat::RunUMAP(reduction = "pca", dims = 1:10, verbose = verbose)
 
-DimPlot(pbmc.1k.seurat.6, reduction = "umap", split.by = "orig.ident", label = TRUE)
+Seurat::DimPlot(pbmc.1k.seurat.6, reduction = "umap", split.by = "orig.ident", label = TRUE)
 
 
 ## ----umap_gene_expression-----------------------------------------------------
-FeaturePlot(pbmc.1k.seurat.6, reduction = "umap", features = c("CST3", "NKG7", "PPBP"),
+Seurat::FeaturePlot(pbmc.1k.seurat.6, reduction = "umap", features = c("CST3", "NKG7", "PPBP"),
 ncol = 3)
 
 ## ----findmarkers--------------------------------------------------------------
 top_n = 20
-cluster1.markers <- FindMarkers(pbmc.1k.seurat.6, ident.1 = 1, min.pct = 0.25)
+cluster1.markers <- Seurat::FindMarkers(pbmc.1k.seurat.6, ident.1 = 1, min.pct = 0.25)
 cluster1.markers$pct.diff <- cluster1.markers$pct.1 - cluster1.markers$pct.2
 cluster1.markers.df <- as_tibble(cluster1.markers, rownames = "geneID")
 
 # Export DEGs for each cluster (ranked by avg_logFC > 0.5)
 myTopHits_cluster1 <- cluster1.markers.df %>% arrange(desc(avg_log2FC))
 myTopHits_cluster1 <- dplyr::slice(myTopHits_cluster1, 1:top_n)
-myTopHits_cluster1
+#myTopHits_cluster1
 # Interactive table 
 DT::datatable(myTopHits_cluster1, 
           extensions = c('KeyTable', "FixedHeader"), 
@@ -257,17 +256,17 @@ DT::datatable(myTopHits_cluster1,
   DT::formatRound(columns=c(2:ncol(myTopHits_cluster1)), digits=2)
 
 ## ----findallmarkers, fig.width = 9, fig.height = 10---------------------------
-pbmc.1k.markers <- FindAllMarkers(pbmc.1k.seurat.6, 
+pbmc.1k.markers <- Seurat::FindAllMarkers(pbmc.1k.seurat.6, 
                                   only.pos = TRUE, 
                                   min.pct = 0.25, 
                                   logfc.threshold = 0.25)
 
 # Top 10 marker genes for each cluster and plot as a heatmap
 top3 <- pbmc.1k.markers %>% 
-  group_by(cluster) %>%
-  top_n(n = 3, wt = avg_log2FC)
+  dplyr::group_by(cluster) %>%
+  dplyr::top_n(n = 3, wt = avg_log2FC)
 
-DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
+Seurat::DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
 
 ## ----export_markers, eval=FALSE-----------------------------------------------
 #  filename = paste0(results_path,"/markers_all.csv")
@@ -276,18 +275,18 @@ DoHeatmap(pbmc.1k.seurat.6, features = top3$gene)
 
 ## ----featuremap_allmarkers, fig.width = 9, fig.height = 10--------------------
 
-FeaturePlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
+Seurat::FeaturePlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
 
 ## ----violinplots_allmarkers, fig.width = 7, fig.height = 10-------------------
 
-VlnPlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
+Seurat::VlnPlot(pbmc.1k.seurat.6, features = top3$gene, ncol = 5)
 
 
 ## ----dotplot_manualAnnotate---------------------------------------------------
 
-DotPlot(pbmc.1k.seurat.6, assay = "RNA", features = top3$gene, scale.by = "size") +
-  coord_flip()
+Seurat::DotPlot(pbmc.1k.seurat.6, assay = "RNA", features = top3$gene, scale.by = "size") +
+  ggplot2::coord_flip()
 
 
 ## ----umap_with_ident----------------------------------------------------------
@@ -295,8 +294,8 @@ DotPlot(pbmc.1k.seurat.6, assay = "RNA", features = top3$gene, scale.by = "size"
 new.cluster.ids <- c("CD14+ Mono", "Memory CD4 T", "Naive CD4 T", "B1", "FCGR3A+ Mono", 
     "NK", "CD8+ T", "B2", "Platelet")
 names(new.cluster.ids) <- levels(pbmc.1k.seurat.6)
-pbmc.1k.seurat.6 <- RenameIdents(pbmc.1k.seurat.6, new.cluster.ids)
-DimPlot(pbmc.1k.seurat.6, reduction = "umap", label = TRUE, pt.size = 0.5, label.size = 4)
+pbmc.1k.seurat.6 <- Seurat::RenameIdents(pbmc.1k.seurat.6, new.cluster.ids)
+Seurat::DimPlot(pbmc.1k.seurat.6, reduction = "umap", label = TRUE, pt.size = 0.5, label.size = 4)
 
 
 ## ----singleR_heatmap----------------------------------------------------------
@@ -304,7 +303,7 @@ DimPlot(pbmc.1k.seurat.6, reduction = "umap", label = TRUE, pt.size = 0.5, label
 Monaco.data <- celldex::MonacoImmuneData(ensembl = FALSE) 
 
 # Converting from seuratobject to singlecellexperiment container
-pbmc.1k.sce <- as.SingleCellExperiment(pbmc.1k.seurat.6)
+pbmc.1k.sce <- Seurat::as.SingleCellExperiment(pbmc.1k.seurat.6)
 
 # Leverage the Monaco dataset for prediction
 # Can change the ref data to annotate with different datasets
@@ -320,19 +319,19 @@ SingleR::plotScoreHeatmap(predictions)
 pbmc.1k.sce[["SingleR.labels"]] <- predictions$labels
 
 #Convert back to seurat object to utilise the seurat dimPlot function
-pbmc.1k.seurat.7 <- CreateSeuratObject(counts = pbmc.1k.sce@assays@data@listData[["counts"]],
+pbmc.1k.seurat.7 <- Seurat::CreateSeuratObject(counts = pbmc.1k.sce@assays@data@listData[["counts"]],
                                        meta.data = as.data.frame(colData(pbmc.1k.sce)),
                                        reduction = pbmc.1k.sce@int_colData$reducedDims$UMAP)
 
-pbmc.1k.seurat.7[["UMAP"]] <- CreateDimReducObject(embeddings = pbmc.1k.sce@int_colData$reducedDims$UMAP, assay = DefaultAssay(pbmc.1k.seurat.7))
+pbmc.1k.seurat.7[["UMAP"]] <- Seurat::CreateDimReducObject(embeddings = pbmc.1k.sce@int_colData$reducedDims$UMAP, assay = Seurat::DefaultAssay(pbmc.1k.seurat.7))
 
 #Plot UMAP
-DimPlot(pbmc.1k.seurat.7, reduction = "UMAP", 
+Seurat::DimPlot(pbmc.1k.seurat.7, reduction = "UMAP", 
         group.by = "SingleR.labels", 
         label = TRUE,
         repel = FALSE)+ 
   patchwork::plot_annotation(title = 'Labelling clusters with singleR labels')+
-  theme(plot.title = element_blank())
+  ggplot2::theme(plot.title = ggplot2::element_blank())
 
 
 ## ----session info, include=TRUE-----------------------------------------------
