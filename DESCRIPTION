@@ -36,4 +36,5 @@ Imports:
     patchwork,
     methods,
     viridis,
-    pheatmap
+    pheatmap,
+    openxlsx
