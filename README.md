@@ -1,3 +1,7 @@
+ <!-- badges: start -->
+  [![R-CMD-check](https://github.com/kane9530/scRNAseqTemplateR/workflows/R-CMD-check/badge.svg)](https://github.com/kane9530/scRNAseqTemplateR/actions)
+  <!-- badges: end -->
+  
 # Table of Contents 
 - [Introduction](#introduction)
 - [Installlation](#installation)
