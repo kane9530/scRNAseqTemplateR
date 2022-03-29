@@ -1,10 +1,18 @@
-# scRNAseqTemplateR
+# Table of Contents 
+- [Introduction](#introduction)
+- [Installlation](#installation)
+- [Deliverables](#deliverables)
+- [Directories](#directories)
+- [Usage](#usage)
+- [Acknowledgements](#acknowledgements)
+
+# Introduction
 
 The `scRNAseqTemplateR` R package was created to provide a portable and reproducible template for the analysis of single-cell RNA sequencing (scRNA-seq) data. The R package provides a starting template for bioinformaticians and biologists to share and reuse the code, and to adapt and extend the analysis as required.
 
 To illustrate, we present the analysis of the 10x Chromium `PBMC_V3_1K` dataset. Other scRNA-seq analysis pipelines can be easily adapted from this template. 
 
-## Installation
+# Installation
 
 You can install the development version of scRNAseqTemplateR like so:
 
@@ -17,23 +25,23 @@ devtools::install_github("kane9530/scRNAseqTemplateR")
 
 ```
 
-## Deliverables
+# Deliverables
 
 Within the package, all output files are located in the`/results` and `/vignettes` directories. Output files can be classified into 2 categories:
 
-### Quick summaries
+## Quick summaries
 
 1. A summary of the overall results can be found in `results/summary.pdf`. This consolidates the critical quality control assessments and downstream analyses into  quick, bite-sized, jargon-free reading.
 
 2. A description the methods employed can be found in `results/methods.pdf`. This is suitable for a direct copy-paste to the `Methods` section of a publication.
 
-### Detailed results and report 
+## Detailed results and report 
 
 1. Results files (e.g. `.csv`) and plots (`.png`) can be located in the `results/` folder.
 
 2. A report of the analysis steps taken can be found in static `.pdf` or interactive `.html` formats in `vignettes/`.
 
-## Directories
+# Directories
 
 - `DESCRIPTION`: gives an overview of the project and its dependencies.
 
@@ -53,7 +61,7 @@ Within the package, all output files are located in the`/results` and `/vignette
 
 - `results/` contains all the outputs from the vignette, as well as a summary of the methods used in the analysis
 
-## Usage
+# Usage
 
 ``` r
 library(scRNAseqTemplateR)
@@ -69,6 +77,6 @@ data(raw_matrix)
 
 ```
 
-## Acknowledgements
+# Acknowledgements
 
 The work was performed in the `Genomics and Data Analytics Core (GeDaC)`, Cancer Science Institute of Singapore. 
